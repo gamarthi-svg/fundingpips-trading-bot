@@ -1,0 +1,24 @@
+{
+  "account": {
+    "balance": 9701.10,
+    "equity": 9701.10,
+    "profit": -298.90,
+    "broker": "FundingPips Corp (2) - DEMO",
+    "leverage": "1:100",
+    "server": "FundingPips2-SIM",
+    "name": "Guido Alejandro M"
+  },
+  "backtest": {
+    "xau_asian": {"name": "XAUUSD Asian Scalp", "trades": 452, "win_rate": 25.2, "pnl": -8159.76, "return_pct": -81.6, "max_dd": 81.7, "profit_factor": 0.36, "sharpe": -7.49, "status": "fail"},
+    "xau_ny": {"name": "XAUUSD NY Breakout", "trades": 65, "win_rate": 47.7, "pnl": 2228.23, "return_pct": 22.3, "max_dd": 6.21, "profit_factor": 1.87, "sharpe": 4.73, "status": "close"},
+    "forex_london": {"name": "Forex London Breakout", "trades": 590, "win_rate": 23.9, "pnl": 27427.0, "return_pct": 274.3, "max_dd": 2.63, "profit_factor": 15.36, "sharpe": 7.35, "status": "pass"},
+    "monte_carlo": {"pass_rate": 88.5, "median_return": 214.5, "worst_case": 167.2, "best_case": 263.1}
+  },
+  "recommendations": [
+    "XAUUSD Asian Scalp needs parameter tuning",
+    "XAUUSD NY Breakout is close - reduce size slightly",
+    "Forex London Breakout passes all checks - best candidate",
+    "Run walk-forward optimization before live trading",
+    "Start with 0.1% risk per trade during evaluation"
+  ]
+}
