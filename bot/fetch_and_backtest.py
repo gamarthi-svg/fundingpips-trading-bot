@@ -333,200 +333,333 @@ def add_indicators(df: pd.DataFrame) -> pd.DataFrame:
     df['hour'] = df['time'].dt.hour
     return df
 
-# ── Strategy Backtests ──
+# ── Strategy Backtests (ATR-based dynamic SL/TP) ──
+#
+# All strategies use ATR (Average True Range) for dynamic stop-loss and
+# take-profit levels instead of fixed pip counts.  This makes the stops
+# adapt to current market volatility and works correctly regardless of
+# whether XAUUSD is priced at $2,350 or $4,700.
+#
+# Position sizing formula:
+#   risk_amount   = balance * risk_pct          (e.g. $50 = 0.5% of $10K)
+#   stop_distance = entry - sl                   (in price terms)
+#   lots          = risk_amount / (stop_distance * contract_value)
+#
+# Where contract_value = $ per $1 of price move per lot:
+#   XAUUSD: 100  ($100 per $1 move per standard lot)
+#   EURUSD: 100000 * 0.0001 = $10 per pip per lot, but we use raw price
+#
+# PnL is capped at risk_amount for losses and risk_amount * R:R for wins.
+
+
+def _position_size(risk_amount: float, stop_distance: float, contract_value: float) -> float:
+    """Calculate lot size given risk amount and stop distance.
+
+    Args:
+        risk_amount:   Maximum dollar amount to risk on this trade.
+        stop_distance: Price distance from entry to stop-loss.
+        contract_value: Dollar value per $1 of price move per 1.0 lot.
+
+    Returns:
+        Lot size (e.g. 0.15 for 0.15 standard lots).
+    """
+    if stop_distance <= 0:
+        return 0.0
+    lots = risk_amount / (stop_distance * contract_value)
+    return max(0.01, min(5.0, round(lots, 2)))
+
+
 def backtest_xauusd_asian(df: pd.DataFrame, cfg: dict) -> dict:
-    """XAUUSD Asian Session Range Scalping: 23:00-03:00 GMT."""
+    """XAUUSD Asian Session Range Scalping: 23:00-03:00 GMT.
+
+    Signal: close above EMA20, RSI 40-65, ATR > min threshold,
+            close > open (bullish candle), volume > 20-period avg.
+    Entry:  current close.
+    SL:    entry - 1.5 x ATR14.
+    TP:    entry + 3.0 x ATR14  (1:2 R:R).
+    Risk:  0.5% of balance per trade.
+    Max hold: 50 candles (~4 hours).
+    Cooldown: max 1 trade per calendar day.
+    """
     df = add_indicators(df)
+    # Add volume average for confirmation
+    df['vol_avg20'] = df['tick_volume'].rolling(20).mean()
+
     balance = INITIAL_BALANCE
     equity = INITIAL_BALANCE
     peak = INITIAL_BALANCE
     trades = []
     equity_curve = [{'time': df['time'].iloc[0], 'equity': equity}]
 
-    spread = SYMBOLS['XAUUSD']['spread']
     commission = SYMBOLS['XAUUSD']['commission']
-    pip_size = SYMBOLS['XAUUSD']['pip_size']
+    CONTRACT_VALUE = 100.0   # $100 per $1 move per standard lot
+    last_trade_date = None
 
     for i in range(50, len(df) - 1):
         candle = df.iloc[i]
         hour = candle['hour']
+        today = candle['time'].date()
 
-        # Asian session: 23:00-03:00 GMT
+        # Asian session window: 23:00-03:00 GMT
         if not (hour >= 23 or hour <= 3):
             continue
 
-        # Signal: close above EMA20, RSI between 40-65, ATR > threshold
-        if candle['close'] > candle['ema20'] and 40 <= candle['rsi14'] <= 65 and candle['atr14'] > 1.5:
-            # Entry
-            entry = candle['close'] + spread / 2
-            sl = entry - 10 * pip_size  # 10 pip SL
-            tp = entry + 20 * pip_size  # 1:2 R:R
+        # Cooldown: only 1 trade per day
+        if last_trade_date == today:
+            continue
 
-            # Position sizing: 0.5% risk
-            risk_amount = balance * 0.005
-            stop_distance = entry - sl
-            lots = risk_amount / (stop_distance * 100)  # XAUUSD: $1 per 0.01 per 1 lot
-            lots = max(0.01, min(5.0, round(lots, 2)))
+        # Minimum ATR filter (~0.05% of price)
+        min_atr = candle['close'] * 0.0005
+        if candle['atr14'] < min_atr:
+            continue
 
-            # Find exit in next candles
-            for j in range(i + 1, min(i + 50, len(df))):
-                future = df.iloc[j]
-                if future['low'] <= sl:
-                    pnl = -(risk_amount + commission * lots)
-                    break
-                elif future['high'] >= tp:
-                    pnl = risk_amount * 2 - commission * lots
-                    break
-            else:
-                pnl = (future['close'] - entry) * 100 * lots - commission * lots
+        # Signal: bullish candle + close above EMA20 + neutral RSI + volume
+        if not (candle['close'] > candle['open']):
+            continue
+        if not (candle['close'] > candle['ema20']):
+            continue
+        if not (42 <= candle['rsi14'] <= 60):
+            continue
+        if not (candle['tick_volume'] > candle['vol_avg20'] * 1.2):
+            continue
 
-            balance += pnl
-            equity = balance
-            peak = max(peak, equity)
-            trades.append({'pnl': pnl, 'result': 'win' if pnl > 0 else 'loss', 'symbol': 'XAUUSD', 'strategy': 'Asian Scalp'})
-            equity_curve.append({'time': candle['time'], 'equity': equity})
+        # Entry
+        entry = candle['close']
+        atr = candle['atr14']
+
+        # Dynamic ATR-based SL / TP
+        sl_distance = 1.5 * atr
+        tp_distance = 3.0 * atr  # 1:2 risk:reward
+        sl = entry - sl_distance
+        tp = entry + tp_distance
+
+        # Position sizing: risk 0.5% of current balance
+        risk_amount = balance * 0.005
+        lots = _position_size(risk_amount, sl_distance, CONTRACT_VALUE)
+        if lots <= 0:
+            continue
+
+        # Simulate trade — walk forward until SL, TP, or max hold
+        pnl = 0.0
+        for j in range(i + 1, min(i + 50, len(df))):
+            future = df.iloc[j]
+            if future['low'] <= sl:
+                pnl = -(risk_amount + commission * lots)
+                break
+            elif future['high'] >= tp:
+                pnl = risk_amount * 2 - commission * lots
+                break
+        else:
+            # Timed exit — use close of last candle
+            pnl = (future['close'] - entry) * lots * CONTRACT_VALUE - commission * lots
+
+        balance += pnl
+        equity = balance
+        peak = max(peak, equity)
+        last_trade_date = today
+        trades.append({
+            'pnl': pnl,
+            'result': 'win' if pnl > 0 else 'loss',
+            'symbol': 'XAUUSD',
+            'strategy': 'Asian Scalp',
+        })
+        equity_curve.append({'time': candle['time'], 'equity': equity})
 
     return calculate_metrics(trades, equity_curve, 'XAUUSD Asian Scalp')
 
+
 def backtest_xauusd_ny(df: pd.DataFrame, cfg: dict) -> dict:
-    """XAUUSD NY Opening Range Breakout: 13:30-14:30 GMT."""
+    """XAUUSD NY Opening Range Breakout: 13:30-14:30 GMT.
+
+    Signal: close breaks above 10-candle high by >0.3 x ATR,
+            RSI > 55 (bullish momentum), volume > 20-period avg.
+    Entry:  breakout close.
+    SL:    entry - 2.0 x ATR14.
+    TP:    entry + 4.0 x ATR14  (1:2 R:R, wider for momentum).
+    Risk:  0.5% of balance per trade.
+    Max hold: 60 candles (~5 hours).
+    Cooldown: max 1 trade per calendar day.
+    """
     df = add_indicators(df)
+    df['vol_avg20'] = df['tick_volume'].rolling(20).mean()
+
     balance = INITIAL_BALANCE
     trades = []
     equity_curve = [{'time': df['time'].iloc[0], 'equity': balance}]
 
-    spread = SYMBOLS['XAUUSD']['spread']
-    pip_size = SYMBOLS['XAUUSD']['pip_size']
+    commission = SYMBOLS['XAUUSD']['commission']
+    CONTRACT_VALUE = 100.0
+    last_trade_date = None
 
     for i in range(50, len(df) - 1):
         candle = df.iloc[i]
         hour, minute = candle['hour'], candle['time'].minute
+        today = candle['time'].date()
 
         # NY Open window: 13:30-14:30 GMT
         if not (hour == 13 and minute >= 30) and not (hour == 14):
             continue
 
-        # ORB: close breaks above recent high
-        recent_high = df.iloc[i-10:i]['high'].max()
-        if candle['close'] > recent_high and candle['atr14'] > 2.0:
-            entry = candle['close'] + spread / 2
-            sl = entry - 18 * pip_size
-            tp = entry + 54 * pip_size  # 1:3 R:R
+        # Cooldown: only 1 trade per day
+        if last_trade_date == today:
+            continue
 
-            risk_amount = balance * 0.005
-            stop_distance = entry - sl
-            lots = risk_amount / (stop_distance * 100)
-            lots = max(0.01, min(5.0, round(lots, 2)))
+        # Minimum ATR (~0.08% of price)
+        min_atr = candle['close'] * 0.0008
+        if candle['atr14'] < min_atr:
+            continue
 
-            for j in range(i + 1, min(i + 60, len(df))):
-                future = df.iloc[j]
-                if future['low'] <= sl:
-                    pnl = -(risk_amount + 5 * lots)
-                    break
-                elif future['high'] >= tp:
-                    pnl = risk_amount * 3 - 5 * lots
-                    break
-            else:
-                pnl = (future['close'] - entry) * 100 * lots - 5 * lots
+        # Strong breakout: close must exceed recent 10-candle high by >0.5 x ATR
+        recent_high = df.iloc[i - 10:i]['high'].max()
+        breakout_margin = 0.5 * candle['atr14']
+        if candle['close'] <= recent_high + breakout_margin:
+            continue
 
-            balance += pnl
-            trades.append({'pnl': pnl, 'result': 'win' if pnl > 0 else 'loss', 'symbol': 'XAUUSD', 'strategy': 'NY Breakout'})
-            equity_curve.append({'time': candle['time'], 'equity': balance})
+        # Momentum confirmation: RSI > 50 (bullish)
+        if candle['rsi14'] <= 50:
+            continue
+
+        # Volume confirmation
+        if candle['tick_volume'] <= candle['vol_avg20'] * 1.0:
+            continue
+
+        # Entry
+        entry = candle['close']
+        atr = candle['atr14']
+
+        # Dynamic SL/TP
+        sl_distance = 2.0 * atr
+        tp_distance = 4.0 * atr  # 1:2 R:R
+        sl = entry - sl_distance
+        tp = entry + tp_distance
+
+        risk_amount = balance * 0.005
+        lots = _position_size(risk_amount, sl_distance, CONTRACT_VALUE)
+        if lots <= 0:
+            continue
+
+        pnl = 0.0
+        for j in range(i + 1, min(i + 60, len(df))):
+            future = df.iloc[j]
+            if future['low'] <= sl:
+                pnl = -(risk_amount + commission * lots)
+                break
+            elif future['high'] >= tp:
+                pnl = risk_amount * 2 - commission * lots
+                break
+        else:
+            pnl = (future['close'] - entry) * lots * CONTRACT_VALUE - commission * lots
+
+        balance += pnl
+        last_trade_date = today
+        trades.append({
+            'pnl': pnl,
+            'result': 'win' if pnl > 0 else 'loss',
+            'symbol': 'XAUUSD',
+            'strategy': 'NY Breakout',
+        })
+        equity_curve.append({'time': candle['time'], 'equity': balance})
 
     return calculate_metrics(trades, equity_curve, 'XAUUSD NY Breakout')
 
-def backtest_nq_orb(df: pd.DataFrame, cfg: dict) -> dict:
-    """NQ Opening Range Breakout: Mon/Wed/Fri 13:30-15:30 GMT."""
-    df = add_indicators(df)
-    balance = INITIAL_BALANCE
-    trades = []
-    equity_curve = [{'time': df['time'].iloc[0], 'equity': balance}]
-
-    spread = SYMBOLS['NQ']['spread']
-    pip_size = SYMBOLS['NQ']['pip_size']
-
-    for i in range(50, len(df) - 1):
-        candle = df.iloc[i]
-        hour = candle['hour']
-        weekday = candle['time'].weekday()
-
-        # Only Mon(0), Wed(2), Fri(4), 13:30-15:30
-        if weekday not in [0, 2, 4] or not (13 <= hour <= 15):
-            continue
-
-        recent_high = df.iloc[i-10:i]['high'].max()
-        if candle['close'] > recent_high and candle['atr14'] > 10:
-            entry = candle['close'] + spread / 2
-            sl = entry - 10 * pip_size
-            tp = entry + 40 * pip_size  # 1:4 R:R
-
-            risk_amount = balance * 0.005
-            stop_distance = entry - sl
-            lots = risk_amount / (stop_distance * 20)  # NQ: $20/pt
-            lots = max(0.1, min(10.0, round(lots, 1)))
-
-            for j in range(i + 1, min(i + 80, len(df))):
-                future = df.iloc[j]
-                if future['low'] <= sl:
-                    pnl = -(risk_amount)
-                    break
-                elif future['high'] >= tp:
-                    pnl = risk_amount * 4
-                    break
-            else:
-                pnl = (future['close'] - entry) * 20 * lots
-
-            balance += pnl
-            trades.append({'pnl': pnl, 'result': 'win' if pnl > 0 else 'loss', 'symbol': 'NQ', 'strategy': 'ORB'})
-            equity_curve.append({'time': candle['time'], 'equity': balance})
-
-    return calculate_metrics(trades, equity_curve, 'NQ ORB')
 
 def backtest_forex_london(df: pd.DataFrame, cfg: dict) -> dict:
-    """Forex London Breakout: 07:00-12:00 GMT."""
+    """Forex London Breakout: 07:00-12:00 GMT.
+
+    Signal: close breaks above the Asian session range high.
+    Asian range = 35 candles before current (approx 23:00-07:00 GMT).
+    Entry:  breakout close.
+    SL:    lower bound of Asian range (structure-based, not ATR).
+           If range is too tight (< 1.0 x ATR), fallback to 1.5 x ATR.
+    TP:    entry + (entry - sl) x 2  (1:2 R:R).
+    Risk:  0.5% of balance per trade.
+    Max hold: 60 candles (~5 hours).
+    """
     df = add_indicators(df)
     balance = INITIAL_BALANCE
     trades = []
     equity_curve = [{'time': df['time'].iloc[0], 'equity': balance}]
 
     spread = SYMBOLS['EURUSD']['spread']
-    pip_size = SYMBOLS['EURUSD']['pip_size']
+    commission = SYMBOLS['EURUSD']['commission']
+    CONTRACT_VALUE = 100_000.0  # 1 standard lot = 100,000 units
+    trades_today = 0
+    current_date = None
+    MAX_TRADES_PER_DAY = 2
 
     for i in range(50, len(df) - 1):
         candle = df.iloc[i]
         hour = candle['hour']
+        today = candle['time'].date()
 
+        # Reset daily counter
+        if today != current_date:
+            current_date = today
+            trades_today = 0
+
+        # London session: 07:00-12:00 GMT
         if not (7 <= hour <= 12):
             continue
 
-        # Asian range breakout
-        asian_low = df.iloc[i-35:i]['low'].min() if i > 35 else df.iloc[:i]['low'].min()
-        asian_high = df.iloc[i-35:i]['high'].max() if i > 35 else df.iloc[:i]['high'].max()
+        # Daily trade cap to prevent clustering
+        if trades_today >= MAX_TRADES_PER_DAY:
+            continue
 
-        if candle['close'] > asian_high:
-            entry = candle['close'] + spread / 2
-            sl = asian_low  # SL on other side of range
-            tp = entry + (entry - sl) * 2  # 1:2 R:R
+        # Asian session range (previous ~7 hours = 84 candles on M5)
+        lookback = min(84, i)
+        asian_low = df.iloc[i - lookback:i]['low'].min()
+        asian_high = df.iloc[i - lookback:i]['high'].max()
+        asian_range = asian_high - asian_low
 
-            risk_amount = balance * 0.005
-            stop_distance = entry - sl
-            lots = risk_amount / (stop_distance * 100000)  # Forex lot sizing
-            lots = max(0.01, min(5.0, round(lots, 2)))
+        # Require a meaningful range (at least 1.5 x ATR)
+        if asian_range <= 1.5 * candle['atr14']:
+            continue
 
-            for j in range(i + 1, min(i + 60, len(df))):
-                future = df.iloc[j]
-                if future['low'] <= sl:
-                    pnl = -(risk_amount + 5 * lots)
-                    break
-                elif future['high'] >= tp:
-                    pnl = risk_amount * 2 - 5 * lots
-                    break
-            else:
-                pnl = (future['close'] - entry) * 100000 * lots * 0.0001 - 5 * lots
+        # Breakout above Asian high by >0.2 x ATR
+        if candle['close'] <= asian_high + 0.2 * candle['atr14']:
+            continue
 
-            balance += pnl
-            trades.append({'pnl': pnl, 'result': 'win' if pnl > 0 else 'loss', 'symbol': 'EURUSD', 'strategy': 'London Breakout'})
-            equity_curve.append({'time': candle['time'], 'equity': balance})
+        # Entry
+        entry = candle['close'] + spread / 2
+        atr = candle['atr14']
+
+        # SL: on the far side of the Asian range, but at least 1.0 x ATR away
+        sl = asian_low
+        sl_distance = entry - sl
+        min_sl = 1.0 * atr
+        if sl_distance < min_sl:
+            sl = entry - min_sl
+            sl_distance = min_sl
+
+        # TP: 1:2 risk:reward
+        tp = entry + sl_distance * 2
+
+        risk_amount = balance * 0.005
+        lots = _position_size(risk_amount, sl_distance, CONTRACT_VALUE)
+        if lots <= 0:
+            continue
+
+        pnl = 0.0
+        for j in range(i + 1, min(i + 60, len(df))):
+            future = df.iloc[j]
+            if future['low'] <= sl:
+                pnl = -(risk_amount + commission * lots)
+                break
+            elif future['high'] >= tp:
+                pnl = risk_amount * 2 - commission * lots
+                break
+        else:
+            pnl = (future['close'] - entry) * lots * CONTRACT_VALUE - commission * lots
+
+        balance += pnl
+        trades_today += 1
+        trades.append({
+            'pnl': pnl,
+            'result': 'win' if pnl > 0 else 'loss',
+            'symbol': 'EURUSD',
+            'strategy': 'London Breakout',
+        })
+        equity_curve.append({'time': candle['time'], 'equity': balance})
 
     return calculate_metrics(trades, equity_curve, 'Forex London')
 
@@ -569,15 +702,21 @@ def calculate_metrics(trades: list, equity_curve: list, name: str) -> dict:
     else:
         sharpe = 0
 
-    # Daily PnL for consistency
+    # Daily PnL for consistency (prop firm rule: no single day > 35% of total)
     df_eq = pd.DataFrame(equity_curve)
     if len(df_eq) > 1:
         df_eq['date'] = pd.to_datetime(df_eq['time']).dt.date
         daily = df_eq.groupby('date')['equity'].last().diff().dropna()
-        best_day = daily.max() if len(daily) > 0 else 0
-        consistency = best_day / total_pnl if total_pnl > 0 else 0
+        # Only count profitable days
+        daily_profits = daily[daily > 0]
+        total_profits = daily_profits.sum()
+        best_day = daily_profits.max() if len(daily_profits) > 0 else 0
+        if total_profits > 0:
+            consistency = best_day / total_profits
+        else:
+            consistency = 0.0
     else:
-        consistency = 0
+        consistency = 0.0
 
     # Prop firm checks
     daily_dd_limit = INITIAL_BALANCE * PRO_LIMITS['daily_dd_pct']
