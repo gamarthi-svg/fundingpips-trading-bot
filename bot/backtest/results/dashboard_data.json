@@ -1,36 +1,40 @@
 {
   "xau_asian": {
-    "name": "XAUUSD Asian Scalp",
+    "name": "XAUUSD Asian",
     "symbol": "XAUUSD",
-    "total_trades": 38,
-    "winning_trades": 16,
-    "losing_trades": 22,
-    "total_return": 4.24,
-    "total_pnl": 424.47,
-    "win_rate": 42.1,
-    "profit_factor": 1.37,
-    "avg_win": 98.71,
-    "avg_loss": 52.49,
-    "max_drawdown_pct": 1.99,
-    "max_drawdown_dollars": 209.51,
-    "sharpe_ratio": 2.35,
-    "consistency_score": 6.6,
+    "total_trades": 47,
+    "winning_trades": 20,
+    "losing_trades": 27,
+    "total_return": 5.72,
+    "total_pnl": 571.55,
+    "win_rate": 42.6,
+    "profit_factor": 1.4,
+    "avg_win": 100.9,
+    "avg_loss": 53.58,
+    "max_drawdown_pct": 3.98,
+    "max_drawdown_dollars": 438.68,
+    "sharpe_ratio": 2.5,
+    "consistency_score": 5.4,
     "equity_curve": [
       {
-        "time": "2026-02-25 09:05:00+00:00",
+        "time": "2026-02-25 10:40:00+00:00",
         "equity": 10000.0
       },
       {
-        "time": "2026-03-24 00:05:00+00:00",
-        "equity": 10401.9
+        "time": "2026-03-13 00:00:00+00:00",
+        "equity": 10488.76
       },
       {
-        "time": "2026-04-14 00:05:00+00:00",
-        "equity": 10501.04
+        "time": "2026-03-30 00:20:00+00:00",
+        "equity": 10589.01
       },
       {
-        "time": "2026-04-30 01:10:00+00:00",
-        "equity": 10534.03
+        "time": "2026-04-15 01:05:00+00:00",
+        "equity": 10850.78
+      },
+      {
+        "time": "2026-05-04 03:45:00+00:00",
+        "equity": 10789.49
       }
     ],
     "trades": [
@@ -39,7 +43,7 @@
         "result": "loss"
       },
       {
-        "pnl": 99.35,
+        "pnl": 99.2,
         "result": "win"
       },
       {
@@ -51,220 +55,245 @@
         "result": "loss"
       },
       {
-        "pnl": 100.83,
+        "pnl": 100.78,
         "result": "win"
       },
       {
-        "pnl": 101.64,
+        "pnl": 33.3,
         "result": "win"
       },
       {
-        "pnl": 102.66,
+        "pnl": 102.12,
         "result": "win"
       },
       {
-        "pnl": -52.57,
-        "result": "loss"
-      },
-      {
-        "pnl": 103.26,
+        "pnl": 103.05,
         "result": "win"
       },
       {
-        "pnl": -52.42,
+        "pnl": -52.44,
         "result": "loss"
       },
       {
-        "pnl": -52.21,
-        "result": "loss"
-      },
-      {
-        "pnl": 103.25,
+        "pnl": 103.6,
         "result": "win"
-      },
-      {
-        "pnl": -52.36,
-        "result": "loss"
-      },
-      {
-        "pnl": 103.86,
-        "result": "win"
-      },
-      {
-        "pnl": -52.67,
-        "result": "loss"
-      },
-      {
-        "pnl": -52.51,
-        "result": "loss"
-      },
-      {
-        "pnl": -52.35,
-        "result": "loss"
-      },
-      {
-        "pnl": -51.98,
-        "result": "loss"
-      },
-      {
-        "pnl": 102.6,
-        "result": "win"
-      },
-      {
-        "pnl": 103.53,
-        "result": "win"
-      },
-      {
-        "pnl": -52.66,
-        "result": "loss"
       },
       {
         "pnl": -52.59,
         "result": "loss"
       },
       {
-        "pnl": 38.25,
+        "pnl": 104.06,
         "result": "win"
       },
       {
-        "pnl": -52.77,
+        "pnl": -53.25,
         "result": "loss"
       },
       {
-        "pnl": 103.46,
+        "pnl": 104.62,
         "result": "win"
       },
       {
-        "pnl": -52.62,
+        "pnl": -53.16,
         "result": "loss"
       },
       {
-        "pnl": -52.51,
+        "pnl": -52.84,
         "result": "loss"
       },
       {
-        "pnl": 103.55,
+        "pnl": -52.58,
+        "result": "loss"
+      },
+      {
+        "pnl": 104.18,
         "result": "win"
       },
       {
-        "pnl": -53.02,
-        "result": "loss"
-      },
-      {
-        "pnl": 103.9,
+        "pnl": 105.17,
         "result": "win"
       },
       {
-        "pnl": -53.02,
+        "pnl": -53.36,
         "result": "loss"
       },
       {
-        "pnl": 104.36,
+        "pnl": 105.69,
         "result": "win"
+      },
+      {
+        "pnl": -53.62,
+        "result": "loss"
+      },
+      {
+        "pnl": -53.46,
+        "result": "loss"
+      },
+      {
+        "pnl": -53.14,
+        "result": "loss"
+      },
+      {
+        "pnl": -53.07,
+        "result": "loss"
+      },
+      {
+        "pnl": -52.66,
+        "result": "loss"
+      },
+      {
+        "pnl": 103.89,
+        "result": "win"
+      },
+      {
+        "pnl": 105.13,
+        "result": "win"
+      },
+      {
+        "pnl": 105.93,
+        "result": "win"
+      },
+      {
+        "pnl": 107.09,
+        "result": "win"
+      },
+      {
+        "pnl": -54.8,
+        "result": "loss"
+      },
+      {
+        "pnl": -54.58,
+        "result": "loss"
+      },
+      {
+        "pnl": 107.06,
+        "result": "win"
+      },
+      {
+        "pnl": 108.18,
+        "result": "win"
+      },
+      {
+        "pnl": -55.13,
+        "result": "loss"
+      },
+      {
+        "pnl": 108.72,
+        "result": "win"
+      },
+      {
+        "pnl": -55.75,
+        "result": "loss"
+      },
+      {
+        "pnl": -55.27,
+        "result": "loss"
+      },
+      {
+        "pnl": -55.15,
+        "result": "loss"
+      },
+      {
+        "pnl": -54.57,
+        "result": "loss"
+      },
+      {
+        "pnl": -54.6,
+        "result": "loss"
+      },
+      {
+        "pnl": -54.22,
+        "result": "loss"
+      },
+      {
+        "pnl": -53.85,
+        "result": "loss"
+      },
+      {
+        "pnl": 105.97,
+        "result": "win"
+      },
+      {
+        "pnl": -53.96,
+        "result": "loss"
+      },
+      {
+        "pnl": -53.79,
+        "result": "loss"
       },
       {
         "pnl": -53.48,
-        "result": "loss"
-      },
-      {
-        "pnl": -53.06,
-        "result": "loss"
-      },
-      {
-        "pnl": 104.49,
-        "result": "win"
-      },
-      {
-        "pnl": -53.22,
-        "result": "loss"
-      },
-      {
-        "pnl": -52.9,
-        "result": "loss"
-      },
-      {
-        "pnl": -52.74,
         "result": "loss"
       }
     ],
     "prop_firm_checks": {
       "max_drawdown_ok": "True",
-      "daily_dd_ok": true,
       "consistency_ok": "True",
       "profit_target_reached": "False"
-    },
-    "limits": {
-      "daily_dd_pct": 0.03,
-      "max_dd_pct": 0.06,
-      "profit_target_pct": 0.06,
-      "max_loss_per_trade_pct": 0.02
     }
   },
   "xau_ny": {
-    "name": "XAUUSD NY Breakout",
+    "name": "XAUUSD NY",
     "symbol": "XAUUSD",
     "total_trades": 14,
     "winning_trades": 5,
     "losing_trades": 9,
-    "total_return": 0.74,
-    "total_pnl": 74.45,
+    "total_return": 0.82,
+    "total_pnl": 81.71,
     "win_rate": 35.7,
-    "profit_factor": 1.23,
-    "avg_win": 78.41,
-    "avg_loss": 35.29,
-    "max_drawdown_pct": 1.14,
-    "max_drawdown_dollars": 116.16,
-    "sharpe_ratio": 1.43,
-    "consistency_score": 25.6,
+    "profit_factor": 1.21,
+    "avg_win": 93.21,
+    "avg_loss": 42.71,
+    "max_drawdown_pct": 1.65,
+    "max_drawdown_dollars": 169.07,
+    "sharpe_ratio": 1.39,
+    "consistency_score": 21.8,
     "equity_curve": [
       {
-        "time": "2026-02-25 09:05:00+00:00",
+        "time": "2026-02-25 10:40:00+00:00",
         "equity": 10000.0
       },
       {
-        "time": "2026-04-10 14:15:00+00:00",
-        "equity": 10069.37
+        "time": "2026-04-24 14:05:00+00:00",
+        "equity": 10133.78
       }
     ],
     "trades": [
-      {
-        "pnl": -50.15,
-        "result": "loss"
-      },
       {
         "pnl": 63.74,
         "result": "win"
       },
       {
-        "pnl": -50.27,
+        "pnl": -50.52,
         "result": "loss"
       },
       {
-        "pnl": -13.35,
+        "pnl": -50.12,
         "result": "loss"
       },
       {
-        "pnl": -6.73,
+        "pnl": -13.46,
         "result": "loss"
       },
       {
-        "pnl": 99.33,
+        "pnl": 99.4,
         "result": "win"
       },
       {
-        "pnl": 100.33,
+        "pnl": 100.34,
         "result": "win"
       },
       {
-        "pnl": 28.23,
+        "pnl": 101.39,
         "result": "win"
       },
       {
-        "pnl": -51.01,
+        "pnl": -51.45,
         "result": "loss"
       },
       {
-        "pnl": -50.75,
+        "pnl": -51.15,
         "result": "loss"
       },
       {
@@ -272,112 +301,109 @@
         "result": "loss"
       },
       {
-        "pnl": 100.4,
+        "pnl": 101.19,
         "result": "win"
       },
       {
-        "pnl": -30.15,
+        "pnl": -51.32,
         "result": "loss"
       },
       {
-        "pnl": -50.78,
+        "pnl": -51.12,
+        "result": "loss"
+      },
+      {
+        "pnl": -50.81,
         "result": "loss"
       }
     ],
     "prop_firm_checks": {
       "max_drawdown_ok": "True",
-      "daily_dd_ok": true,
       "consistency_ok": "True",
       "profit_target_reached": "False"
-    },
-    "limits": {
-      "daily_dd_pct": 0.03,
-      "max_dd_pct": 0.06,
-      "profit_target_pct": 0.06,
-      "max_loss_per_trade_pct": 0.02
     }
   },
-  "forex_london": {
-    "name": "Forex London",
+  "eurusd_london": {
+    "name": "EURUSD London",
     "symbol": "EURUSD",
-    "total_trades": 55,
+    "total_trades": 54,
     "winning_trades": 32,
-    "losing_trades": 23,
-    "total_return": 1.65,
-    "total_pnl": 165.14,
-    "win_rate": 58.2,
-    "profit_factor": 1.25,
-    "avg_win": 25.43,
-    "avg_loss": 28.2,
-    "max_drawdown_pct": 2.32,
-    "max_drawdown_dollars": 232.09,
-    "sharpe_ratio": 1.34,
-    "consistency_score": 25.6,
+    "losing_trades": 22,
+    "total_return": 2.3,
+    "total_pnl": 230.24,
+    "win_rate": 59.3,
+    "profit_factor": 1.36,
+    "avg_win": 27.3,
+    "avg_loss": 29.25,
+    "max_drawdown_pct": 2.31,
+    "max_drawdown_dollars": 230.7,
+    "sharpe_ratio": 1.8,
+    "consistency_score": 23.2,
     "equity_curve": [
       {
-        "time": "2026-03-02 14:45:00+00:00",
+        "time": "2026-03-02 17:20:00+00:00",
         "equity": 10000.0
       },
       {
         "time": "2026-03-17 08:45:00+00:00",
-        "equity": 9948.31
+        "equity": 9948.48
       },
       {
         "time": "2026-04-03 07:20:00+00:00",
-        "equity": 9910.67
+        "equity": 9954.43
       },
       {
         "time": "2026-04-10 11:05:00+00:00",
-        "equity": 9956.5
+        "equity": 10014.07
       },
       {
-        "time": "2026-04-24 10:40:00+00:00",
-        "equity": 10130.3
+        "time": "2026-04-27 07:00:00+00:00",
+        "equity": 10186.43
       },
       {
-        "time": "2026-05-06 08:50:00+00:00",
-        "equity": 10083.27
+        "time": "2026-05-07 07:10:00+00:00",
+        "equity": 10144.44
       }
     ],
     "trades": [
       {
-        "pnl": -22.55,
+        "pnl": -21.87,
         "result": "loss"
       },
       {
-        "pnl": -8.36,
+        "pnl": -14.07,
         "result": "loss"
       },
       {
-        "pnl": -11.92,
+        "pnl": -10.8,
         "result": "loss"
       },
       {
-        "pnl": -22.17,
+        "pnl": -21.19,
         "result": "loss"
       },
       {
-        "pnl": -50.63,
+        "pnl": -50.61,
         "result": "loss"
       },
       {
-        "pnl": -50.32,
+        "pnl": -50.31,
         "result": "loss"
       },
       {
-        "pnl": 37.67,
+        "pnl": 38.5,
         "result": "win"
       },
       {
-        "pnl": 25.6,
+        "pnl": 26.28,
         "result": "win"
       },
       {
-        "pnl": 31.63,
+        "pnl": 32.45,
         "result": "win"
       },
       {
-        "pnl": 19.35,
+        "pnl": 20.1,
         "result": "win"
       },
       {
@@ -385,7 +411,7 @@
         "result": "loss"
       },
       {
-        "pnl": -50.44,
+        "pnl": -50.49,
         "result": "loss"
       },
       {
@@ -393,195 +419,453 @@
         "result": "loss"
       },
       {
-        "pnl": 3.03,
+        "pnl": 3.4,
         "result": "win"
       },
       {
-        "pnl": -32.46,
+        "pnl": -31.56,
         "result": "loss"
       },
       {
-        "pnl": 77.68,
+        "pnl": 83.81,
         "result": "win"
       },
       {
-        "pnl": 64.75,
+        "pnl": 97.78,
         "result": "win"
       },
       {
-        "pnl": 0.85,
+        "pnl": 1.7,
         "result": "win"
       },
       {
-        "pnl": 10.12,
+        "pnl": 10.8,
         "result": "win"
       },
       {
-        "pnl": -10.65,
+        "pnl": -8.96,
         "result": "loss"
       },
       {
-        "pnl": -50.8,
+        "pnl": -51.07,
         "result": "loss"
       },
       {
-        "pnl": 6.79,
+        "pnl": 8.4,
         "result": "win"
       },
       {
-        "pnl": 2.58,
+        "pnl": 3.77,
         "result": "win"
       },
       {
-        "pnl": 17.38,
+        "pnl": 18.81,
         "result": "win"
       },
       {
-        "pnl": -9.75,
+        "pnl": -9.0,
         "result": "loss"
       },
       {
-        "pnl": -49.93,
+        "pnl": -50.18,
         "result": "loss"
       },
       {
-        "pnl": 37.32,
+        "pnl": 40.75,
         "result": "win"
       },
       {
-        "pnl": 50.25,
+        "pnl": 51.68,
         "result": "win"
       },
       {
-        "pnl": 35.93,
+        "pnl": 39.52,
         "result": "win"
       },
       {
-        "pnl": 6.06,
+        "pnl": 6.96,
         "result": "win"
       },
       {
-        "pnl": -33.88,
+        "pnl": -33.28,
         "result": "loss"
       },
       {
-        "pnl": -32.23,
+        "pnl": -31.97,
         "result": "loss"
       },
       {
-        "pnl": 13.87,
+        "pnl": 15.0,
         "result": "win"
       },
       {
-        "pnl": -0.58,
+        "pnl": 0.39,
+        "result": "win"
+      },
+      {
+        "pnl": 98.34,
+        "result": "win"
+      },
+      {
+        "pnl": 99.38,
+        "result": "win"
+      },
+      {
+        "pnl": -28.38,
         "result": "loss"
       },
       {
-        "pnl": 97.79,
+        "pnl": 33.32,
         "result": "win"
       },
       {
-        "pnl": 98.81,
+        "pnl": 7.14,
         "result": "win"
       },
       {
-        "pnl": -28.67,
+        "pnl": 12.42,
+        "result": "win"
+      },
+      {
+        "pnl": 13.86,
+        "result": "win"
+      },
+      {
+        "pnl": -52.65,
         "result": "loss"
       },
       {
-        "pnl": 23.27,
+        "pnl": 5.25,
         "result": "win"
       },
       {
-        "pnl": 30.1,
-        "result": "win"
-      },
-      {
-        "pnl": 5.3,
-        "result": "win"
-      },
-      {
-        "pnl": 10.45,
-        "result": "win"
-      },
-      {
-        "pnl": 11.81,
-        "result": "win"
-      },
-      {
-        "pnl": -52.31,
+        "pnl": -6.76,
         "result": "loss"
       },
       {
-        "pnl": 4.12,
+        "pnl": 4.32,
         "result": "win"
       },
       {
-        "pnl": -7.14,
+        "pnl": -0.15,
         "result": "loss"
       },
       {
-        "pnl": 2.92,
-        "result": "win"
-      },
-      {
-        "pnl": -1.19,
+        "pnl": -5.2,
         "result": "loss"
       },
       {
-        "pnl": -6.88,
+        "pnl": 7.99,
+        "result": "win"
+      },
+      {
+        "pnl": -14.4,
         "result": "loss"
       },
       {
-        "pnl": 6.32,
+        "pnl": 5.75,
         "result": "win"
       },
       {
-        "pnl": -15.15,
-        "result": "loss"
-      },
-      {
-        "pnl": 3.85,
+        "pnl": 6.65,
         "result": "win"
       },
       {
-        "pnl": 4.95,
+        "pnl": 44.27,
         "result": "win"
       },
       {
-        "pnl": 40.59,
+        "pnl": 30.72,
         "result": "win"
       },
       {
-        "pnl": 29.52,
-        "result": "win"
-      },
-      {
-        "pnl": 2.96,
+        "pnl": 4.16,
         "result": "win"
       }
     ],
     "prop_firm_checks": {
       "max_drawdown_ok": "True",
-      "daily_dd_ok": true,
       "consistency_ok": "True",
       "profit_target_reached": "False"
-    },
-    "limits": {
-      "daily_dd_pct": 0.03,
-      "max_dd_pct": 0.06,
-      "profit_target_pct": 0.06,
-      "max_loss_per_trade_pct": 0.02
+    }
+  },
+  "gbpusd_london": {
+    "name": "GBPUSD London",
+    "symbol": "GBPUSD",
+    "total_trades": 55,
+    "winning_trades": 27,
+    "losing_trades": 28,
+    "total_return": 0.33,
+    "total_pnl": 33.05,
+    "win_rate": 49.1,
+    "profit_factor": 1.04,
+    "avg_win": 29.09,
+    "avg_loss": 26.87,
+    "max_drawdown_pct": 4.74,
+    "max_drawdown_dollars": 474.05,
+    "sharpe_ratio": 0.27,
+    "consistency_score": 21.1,
+    "equity_curve": [
+      {
+        "time": "2026-03-02 17:20:00+00:00",
+        "equity": 10000.0
+      },
+      {
+        "time": "2026-03-16 11:40:00+00:00",
+        "equity": 9834.59
+      },
+      {
+        "time": "2026-04-03 07:35:00+00:00",
+        "equity": 9598.35
+      },
+      {
+        "time": "2026-04-10 12:10:00+00:00",
+        "equity": 9656.47
+      },
+      {
+        "time": "2026-04-24 08:15:00+00:00",
+        "equity": 9967.49
+      },
+      {
+        "time": "2026-05-07 07:05:00+00:00",
+        "equity": 9960.73
+      }
+    ],
+    "trades": [
+      {
+        "pnl": -21.0,
+        "result": "loss"
+      },
+      {
+        "pnl": -18.85,
+        "result": "loss"
+      },
+      {
+        "pnl": -50.9,
+        "result": "loss"
+      },
+      {
+        "pnl": 1.05,
+        "result": "win"
+      },
+      {
+        "pnl": -21.67,
+        "result": "loss"
+      },
+      {
+        "pnl": -28.62,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.9,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.6,
+        "result": "loss"
+      },
+      {
+        "pnl": 54.08,
+        "result": "win"
+      },
+      {
+        "pnl": 20.0,
+        "result": "win"
+      },
+      {
+        "pnl": 28.17,
+        "result": "win"
+      },
+      {
+        "pnl": -5.82,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.83,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.49,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.44,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.09,
+        "result": "loss"
+      },
+      {
+        "pnl": 6.24,
+        "result": "win"
+      },
+      {
+        "pnl": 1.44,
+        "result": "win"
+      },
+      {
+        "pnl": -18.98,
+        "result": "loss"
+      },
+      {
+        "pnl": -49.44,
+        "result": "loss"
+      },
+      {
+        "pnl": 17.29,
+        "result": "win"
+      },
+      {
+        "pnl": 8.47,
+        "result": "win"
+      },
+      {
+        "pnl": -27.76,
+        "result": "loss"
+      },
+      {
+        "pnl": -25.55,
+        "result": "loss"
+      },
+      {
+        "pnl": -19.25,
+        "result": "loss"
+      },
+      {
+        "pnl": -25.6,
+        "result": "loss"
+      },
+      {
+        "pnl": 23.46,
+        "result": "win"
+      },
+      {
+        "pnl": 25.3,
+        "result": "win"
+      },
+      {
+        "pnl": 73.0,
+        "result": "win"
+      },
+      {
+        "pnl": 8.76,
+        "result": "win"
+      },
+      {
+        "pnl": 1.76,
+        "result": "win"
+      },
+      {
+        "pnl": -3.4,
+        "result": "loss"
+      },
+      {
+        "pnl": 61.12,
+        "result": "win"
+      },
+      {
+        "pnl": 45.9,
+        "result": "win"
+      },
+      {
+        "pnl": 96.67,
+        "result": "win"
+      },
+      {
+        "pnl": 66.4,
+        "result": "win"
+      },
+      {
+        "pnl": -5.12,
+        "result": "loss"
+      },
+      {
+        "pnl": -14.55,
+        "result": "loss"
+      },
+      {
+        "pnl": 36.57,
+        "result": "win"
+      },
+      {
+        "pnl": 25.67,
+        "result": "win"
+      },
+      {
+        "pnl": -11.39,
+        "result": "loss"
+      },
+      {
+        "pnl": -22.56,
+        "result": "loss"
+      },
+      {
+        "pnl": 19.44,
+        "result": "win"
+      },
+      {
+        "pnl": 54.88,
+        "result": "win"
+      },
+      {
+        "pnl": -34.32,
+        "result": "loss"
+      },
+      {
+        "pnl": -40.0,
+        "result": "loss"
+      },
+      {
+        "pnl": -1.12,
+        "result": "loss"
+      },
+      {
+        "pnl": 17.08,
+        "result": "win"
+      },
+      {
+        "pnl": -7.04,
+        "result": "loss"
+      },
+      {
+        "pnl": 18.27,
+        "result": "win"
+      },
+      {
+        "pnl": -2.08,
+        "result": "loss"
+      },
+      {
+        "pnl": 22.33,
+        "result": "win"
+      },
+      {
+        "pnl": 19.2,
+        "result": "win"
+      },
+      {
+        "pnl": 20.23,
+        "result": "win"
+      },
+      {
+        "pnl": 12.64,
+        "result": "win"
+      }
+    ],
+    "prop_firm_checks": {
+      "max_drawdown_ok": "True",
+      "consistency_ok": "True",
+      "profit_target_reached": "False"
     }
   },
   "monte_carlo": {
-    "n_simulations": 10000,
-    "pass_rate": 53.8,
-    "median_return": 6.65,
-    "mean_return": 6.71,
-    "worst_case": -2.57,
-    "best_case": 16.28,
-    "median_max_dd": 3.76,
-    "max_dd_95th": 7.64
+    "pass_rate": 62.2,
+    "median_return": 9.16,
+    "mean_return": 9.2,
+    "worst_case": -2.19,
+    "best_case": 20.8,
+    "median_max_dd": 4.44,
+    "max_dd_95th": 8.78
   }
 }
