@@ -1,0 +1,79 @@
+{
+  "account": {
+    "balance": 9701.1,
+    "equity": 9701.1,
+    "profit": -298.9,
+    "margin": 0,
+    "free_margin": 9701.1,
+    "name": "Guido Alejandro M",
+    "broker": "FundingPips Corp (2) - DEMO",
+    "leverage": "1:100",
+    "server": "FundingPips2-SIM",
+    "login": "12179923",
+    "currency": "USD"
+  },
+  "phase": {
+    "type": "pro-2step",
+    "label": "Pro 2-Step",
+    "daily_dd_pct": 3,
+    "max_dd_pct": 6,
+    "profit_target_pct": 6,
+    "max_loss_per_trade_pct": 2,
+    "account_size": 10000
+  },
+  "backtest": {
+    "xau_asian": {
+      "name": "XAUUSD Asian Scalp",
+      "symbol": "XAUUSD",
+      "total_trades": 452,
+      "win_rate": 25.2,
+      "total_pnl": -8159.76,
+      "total_return": -81.6,
+      "profit_factor": 0.36,
+      "sharpe_ratio": -7.49,
+      "max_drawdown_pct": 81.7,
+      "status": "fail",
+      "status_reason": "Max drawdown exceeds 6% limit"
+    },
+    "xau_ny": {
+      "name": "XAUUSD NY Breakout",
+      "symbol": "XAUUSD",
+      "total_trades": 65,
+      "win_rate": 47.7,
+      "total_pnl": 2228.23,
+      "total_return": 22.3,
+      "profit_factor": 1.87,
+      "sharpe_ratio": 4.73,
+      "max_drawdown_pct": 6.21,
+      "status": "close",
+      "status_reason": "Max DD 6.21% slightly over 6% limit"
+    },
+    "forex_london": {
+      "name": "Forex London Breakout",
+      "symbol": "EURUSD",
+      "total_trades": 590,
+      "win_rate": 23.9,
+      "total_pnl": 27427.0,
+      "total_return": 274.3,
+      "profit_factor": 15.36,
+      "sharpe_ratio": 7.35,
+      "max_drawdown_pct": 2.63,
+      "status": "pass",
+      "status_reason": "All prop firm checks pass"
+    },
+    "monte_carlo": {
+      "pass_rate": 88.5,
+      "median_return": 214.5,
+      "worst_case": 167.2,
+      "best_case": 263.1,
+      "n_simulations": 10000
+    }
+  },
+  "recommendations": [
+    "XAUUSD Asian Scalp needs parameter tuning - current SL/TP ratio is unprofitable",
+    "XAUUSD NY Breakout is close - reduce position size to bring max DD under 6%",
+    "Forex London Breakout passes all checks - strongest candidate for live trading",
+    "Consider running walk-forward optimization before going live",
+    "Start with 0.1% risk per trade during evaluation phase"
+  ]
+}
