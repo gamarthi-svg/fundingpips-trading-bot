@@ -1,17 +1,19 @@
-"""API routes with job queue integration."""
+"""API routes with job queue and credential management."""
 import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Body
 from fastapi.responses import FileResponse, JSONResponse
 
 from api.jobs import JobManager, JobType
+from api.credentials import CredentialManager
 from backtest.data_loader import DataLoader
 
 router = APIRouter()
 job_mgr: Optional[JobManager] = None
+cred_mgr: Optional[CredentialManager] = None
 
 
 def get_job_manager() -> JobManager:
@@ -23,6 +25,121 @@ def get_job_manager() -> JobManager:
 def set_job_manager(mgr: JobManager):
     global job_mgr
     job_mgr = mgr
+
+
+def get_cred_manager() -> CredentialManager:
+    if cred_mgr is None:
+        raise HTTPException(500, "Credential manager not initialized")
+    return cred_mgr
+
+
+def set_cred_manager(mgr: CredentialManager):
+    global cred_mgr
+    cred_mgr = mgr
+
+
+# ═══════════════════════════════════════════
+# CREDENTIALS (Secure — token NEVER exposed)
+# ═══════════════════════════════════════════
+
+@router.post("/api/credentials")
+async def update_credentials(
+    payload: Dict[str, Any] = Body(...),
+    cm: CredentialManager = Depends(get_cred_manager)
+):
+    """Store MetaAPI credentials (encrypted at rest with AES-256-GCM).
+
+    Request body:
+        {
+            "token": "eyJhbG...",      # MetaAPI token (encrypted before storage)
+            "account_id": "uuid...",   # MetaAPI account ID
+            "region": "new-york",      # agiliumtrade.ai region
+            "prop_firm": "fundingpips",# "fundingpips" or "the5ers"
+            "account_type": "pro",     # Account type
+            "account_size": 10000,     # Account size in USD
+            "phase": "phase1",         # "phase1", "phase2", "funded"
+            "the5ers_step": 1,         # For 5ers 3-step: 1, 2, or 3
+            "mt_login": 0,
+            "mt_password": "",
+            "mt_server": ""
+        }
+
+    Returns:
+        { "success": true, "validated": true, "message": "Connected: ..." }
+
+    The token is validated against MetaAPI before storage and is NEVER
+    returned in any response.
+    """
+    token = payload.get("token", "")
+    account_id = payload.get("account_id", "")
+
+    if not token or not account_id:
+        raise HTTPException(400, "token and account_id are required")
+
+    result = await cm.update(
+        token=token,
+        account_id=account_id,
+        region=payload.get("region", "new-york"),
+        prop_firm=payload.get("prop_firm", "fundingpips"),
+        account_type=payload.get("account_type", "pro"),
+        account_size=payload.get("account_size", 10_000.0),
+        phase=payload.get("phase", "phase1"),
+        the5ers_step=payload.get("the5ers_step", 1),
+        mt_login=payload.get("mt_login", 0),
+        mt_password=payload.get("mt_password", ""),
+        mt_server=payload.get("mt_server", ""),
+    )
+
+    if not result["success"]:
+        raise HTTPException(500, result.get("message", "Failed to store credentials"))
+
+    return result
+
+
+@router.get("/api/credentials/status")
+async def get_credentials_status(
+    cm: CredentialManager = Depends(get_cred_manager)
+):
+    """Return masked credential status.  The token is NEVER included."""
+    return cm.get_status()
+
+
+@router.delete("/api/credentials")
+async def delete_credentials(
+    cm: CredentialManager = Depends(get_cred_manager)
+):
+    """Remove all stored credentials."""
+    cm.delete()
+    return {"success": True, "message": "Credentials deleted"}
+
+
+@router.get("/api/prop-firms")
+async def list_prop_firms():
+    """List supported prop firms and their account types."""
+    from config.settings import PROP_FIRMS
+    return {
+        "firms": [
+            {
+                "id": "fundingpips",
+                "name": "FundingPips",
+                "steps": 2,
+                "account_sizes": [10_000, 50_000, 100_000, 200_000],
+                "default_size": 10_000,
+                "time_limit": None,
+                "phases": ["phase1", "phase2", "funded"],
+            },
+            {
+                "id": "the5ers",
+                "name": "The5%ers",
+                "steps": 3,
+                "account_sizes": [5_000],
+                "default_size": 5_000,
+                "time_limit": None,
+                "phases": ["phase1", "phase2", "phase3", "funded"],
+                "bootcamp": True,
+            },
+        ]
+    }
 
 
 # ═══════════════════════════════════════════

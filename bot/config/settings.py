@@ -46,6 +46,47 @@ FUNDINGPIPS_CONFIG: Dict[str, Any] = {
 }
 
 # =============================================================================
+# The5%ers 5K Bootcamp (3-Step) Configuration
+# =============================================================================
+
+THE5ERS_CONFIG: Dict[str, Any] = {
+    "account_size": 5_000,
+    "evaluation": {
+        "phase1_target": 0.06,      # 6% profit target ($300)
+        "phase2_target": 0.05,      # 5% profit target ($250)
+        "phase3_target": 0.00,      # No target (Funded)
+        "daily_loss_limit": 0.03,   # 3% max daily loss ($150)
+        "max_loss_limit": 0.06,     # 6% max total loss ($300)
+        "min_trading_days": 4,      # Per phase
+        "time_limit": None,         # No time limit
+    },
+    "funded": {
+        "daily_loss_limit": 0.03,
+        "max_loss_limit": 0.05,     # 5% max DD in funded
+        "max_loss_per_trade": 0.02,  # 2% max per trade
+        "consistency_score_limit": 0.35,
+        "profit_split": 0.50,
+        "scaling_plan": True,
+    },
+    "leverage": {
+        "forex": 100,
+        "metals": 30,
+        "indices": 20,
+    },
+    "commission": {
+        "forex": 0.0,
+        "metals": 0.0,
+    },
+    "three_step_challenge": True,  # Distinct from 2-step
+}
+
+# ── Prop Firm Registry ──
+PROP_FIRMS: Dict[str, Dict[str, Any]] = {
+    "fundingpips": FUNDINGPIPS_CONFIG,
+    "the5ers": THE5ERS_CONFIG,
+}
+
+# =============================================================================
 # Phase-Aware Risk Profiles
 # =============================================================================
 
@@ -105,25 +146,39 @@ class BotConfig:
     """Typed container for the merged bot configuration."""
 
     fundingpips: Dict[str, Any] = field(default_factory=lambda: FUNDINGPIPS_CONFIG)
+    the5ers: Dict[str, Any] = field(default_factory=lambda: THE5ERS_CONFIG)
     risk_profiles: Dict[str, Dict[str, Any]] = field(
         default_factory=lambda: RISK_PROFILES
     )
     user: Dict[str, Any] = field(default_factory=dict)
 
+    # ── Prop Firm Selection ──
+
+    def _get_firm_config(self, firm: Optional[str] = None) -> Dict[str, Any]:
+        """Return the config dict for the named prop firm (or default)."""
+        firm = firm or self.user.get("prop_firm", "fundingpips")
+        config = PROP_FIRMS.get(firm)
+        if config is None:
+            logger.warning(
+                "Unknown prop firm %r; falling back to fundingpips", firm
+            )
+            config = FUNDINGPIPS_CONFIG
+        return config
+
     @property
-    def account_size(self) -> float:
+    def account_size(self, firm: Optional[str] = None) -> float:
         """Return the funded account size in base currency."""
-        return float(self.fundingpips.get("account_size", 100_000))
+        return float(self._get_firm_config(firm).get("account_size", 100_000))
 
     @property
-    def leverage(self) -> Dict[str, int]:
+    def leverage(self, firm: Optional[str] = None) -> Dict[str, int]:
         """Return leverage map by asset class."""
-        return dict(self.fundingpips.get("leverage", {}))
+        return dict(self._get_firm_config(firm).get("leverage", {}))
 
     @property
-    def commission(self) -> Dict[str, float]:
+    def commission(self, firm: Optional[str] = None) -> Dict[str, float]:
         """Return commission map by asset class (per round-turn lot)."""
-        return dict(self.fundingpips.get("commission", {}))
+        return dict(self._get_firm_config(firm).get("commission", {}))
 
     def get_risk_profile(self, phase: str) -> Dict[str, Any]:
         """Return the risk profile for a given phase name.
@@ -142,6 +197,36 @@ class BotConfig:
             )
             profile = self.risk_profiles["eval_phase1"]
         return dict(profile)
+
+    # ── Prop-Firm Helpers ──
+
+    def get_limits(self, firm: Optional[str] = None, phase: Optional[str] = None) -> Dict[str, float]:
+        """Return prop-firm risk limits for the current phase.
+
+        Returns a flat dict with keys like ``daily_dd_pct``,
+        ``max_dd_pct``, ``profit_target_pct``.
+        """
+        config = self._get_firm_config(firm)
+        eval_cfg = config.get("evaluation", {})
+        funded_cfg = config.get("funded", {})
+
+        # Phase-aware limits
+        phase = phase or "phase1"
+        if phase in ("phase1", "phase2"):
+            target_key = f"{phase}_target"
+            return {
+                "daily_dd_pct": eval_cfg.get("daily_loss_limit", 0.05),
+                "max_dd_pct": eval_cfg.get("max_loss_limit", 0.10),
+                "profit_target_pct": eval_cfg.get(target_key, 0.08),
+                "max_loss_per_trade_pct": eval_cfg.get("max_loss_per_trade", 0.02),
+            }
+        # Funded
+        return {
+            "daily_dd_pct": funded_cfg.get("daily_loss_limit", 0.03),
+            "max_dd_pct": funded_cfg.get("max_loss_limit", 0.05),
+            "profit_target_pct": 0.0,
+            "max_loss_per_trade_pct": funded_cfg.get("max_loss_per_trade", 0.02),
+        }
 
 
 def load_config(path: str = "config.json") -> BotConfig:

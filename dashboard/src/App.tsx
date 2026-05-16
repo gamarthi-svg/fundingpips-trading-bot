@@ -13,8 +13,10 @@ import {
   DollarSign, BarChart3, Clock, Zap, Target, Percent,
   Wallet, Wifi, WifiOff, Settings,
   Hand, CircleDot, RefreshCw, FlaskConical, Calculator,
-  ClipboardList, Cog, Power, Loader2, Radio, History, Gauge
+  ClipboardList, Cog, Power, Loader2, Radio, History, Gauge,
+  ShieldCheck
 } from 'lucide-react';
+import CredentialManager from './components/CredentialManager';
 import './App.css';
 
 // ═══════════════════════════════════════════════════════════
@@ -335,6 +337,7 @@ export default function App() {
             <TabsTrigger value="strategies" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><Zap className="h-3 w-3 mr-1" />Strategies</TabsTrigger>
             <TabsTrigger value="backtest" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><FlaskConical className="h-3 w-3 mr-1" />Backtest</TabsTrigger>
             <TabsTrigger value="control" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><Cog className="h-3 w-3 mr-1" />Control</TabsTrigger>
+            <TabsTrigger value="settings" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><ShieldCheck className="h-3 w-3 mr-1" />Settings</TabsTrigger>
           </TabsList>
 
           {/* ── OVERVIEW TAB ── */}
@@ -660,6 +663,13 @@ export default function App() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          {/* ═══ SETTINGS ═══ */}
+          <TabsContent value="settings" className="mt-4">
+            <div className="max-w-2xl mx-auto">
+              <CredentialManager />
             </div>
           </TabsContent>
         </Tabs>

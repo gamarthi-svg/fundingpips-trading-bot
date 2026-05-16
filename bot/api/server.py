@@ -1,17 +1,19 @@
-"""FastAPI application with job queue and WebSocket support."""
+"""FastAPI application with job queue, credential manager, and WebSocket."""
 import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import router, set_job_manager
+from api.routes import router, set_job_manager, set_cred_manager
 from api.jobs import JobManager
+from api.credentials import CredentialManager
 
 logger = logging.getLogger(__name__)
 
-# Global job manager (singleton)
+# Global singletons
 _job_manager = JobManager()
+_cred_manager = CredentialManager()
 
 
 @asynccontextmanager
@@ -21,7 +23,21 @@ async def lifespan(app: FastAPI):
     logger.info("Starting job worker...")
     _job_manager.start_worker()
     set_job_manager(_job_manager)
-    logger.info(f"Job worker started. {len(_job_manager.get_recent(1))} jobs in history")
+    logger.info("Job worker started. %d jobs in history", len(_job_manager.get_recent(1)))
+
+    # Credential manager
+    set_cred_manager(_cred_manager)
+    if _cred_manager.has_credentials():
+        status = _cred_manager.get_status()
+        logger.info(
+            "Credentials configured: %s (%s, %s, %s)",
+            status.get("account_id", "unknown"),
+            status.get("prop_firm", "?"),
+            status.get("account_type", "?"),
+            status.get("phase", "?"),
+        )
+    else:
+        logger.info("No credentials configured. Use POST /api/credentials to set up.")
 
     yield  # Server runs here
 
@@ -34,7 +50,8 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="PropFirm Bot API",
-        version="1.0.0",
+        description="Multi-prop-firm trading bot with secure credential management",
+        version="2.0.0",
         lifespan=lifespan
     )
 
