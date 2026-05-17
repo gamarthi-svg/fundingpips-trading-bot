@@ -256,13 +256,191 @@ async def get_status():
 
 @router.get("/api/strategies")
 async def get_strategies():
-    """List available strategies."""
-    return [
-        {"name": "XAUUSD Asian Scalp", "instrument": "XAUUSD", "type": "Range Scalping", "status": "active", "params": {"sl_pips": 10, "rr": "1:2"}},
-        {"name": "XAUUSD NY Breakout", "instrument": "XAUUSD", "type": "Opening Range Breakout", "status": "active", "params": {"sl_pips": 18, "rr": "1:3"}},
-        {"name": "NQ ORB", "instrument": "NQ", "type": "Opening Range Breakout", "status": "active", "params": {"sl_pts": 10, "rr": "1:4"}},
-        {"name": "Forex London", "instrument": "EURUSD", "type": "Session Breakout", "status": "active", "params": {"sl_pips": 18, "rr": "1:2"}},
-    ]
+    """List all available strategies from the strategy library."""
+    try:
+        from strategies.library import STRATEGIES, list_all_strategies
+        return {
+            "strategies": list_all_strategies(),
+            "count": len(STRATEGIES),
+            "by_category": _group_by_category(STRATEGIES)
+        }
+    except ImportError:
+        # Fallback: return hardcoded list
+        return {
+            "strategies": [
+                {"id": "nas100_orb", "name": "NAS100 Opening Range", "symbol": "NAS100", "type": "day", "instrument_category": "indices"},
+                {"id": "nas100_trend", "name": "NAS100 Trend Pullback", "symbol": "NAS100", "type": "swing", "instrument_category": "indices"},
+                {"id": "us30_orb", "name": "US30 Opening Range", "symbol": "US30", "type": "day", "instrument_category": "indices"},
+                {"id": "btc_breakout", "name": "BTC Range Breakout", "symbol": "BTCUSD", "type": "day", "instrument_category": "crypto"},
+                {"id": "btc_trend", "name": "BTC Trend Follow", "symbol": "BTCUSD", "type": "swing", "instrument_category": "crypto"},
+                {"id": "eth_breakout", "name": "ETH Range Breakout", "symbol": "ETHUSD", "type": "day", "instrument_category": "crypto"},
+                {"id": "sol_breakout", "name": "SOL Range Breakout", "symbol": "SOLUSD", "type": "day", "instrument_category": "crypto"},
+                {"id": "xau_asian", "name": "XAU Asian Breakout", "symbol": "XAUUSD", "type": "day", "instrument_category": "metals"},
+                {"id": "xau_ny", "name": "XAU NY Momentum", "symbol": "XAUUSD", "type": "day", "instrument_category": "metals"},
+                {"id": "xau_swing", "name": "XAU Swing Trend", "symbol": "XAUUSD", "type": "swing", "instrument_category": "metals"},
+                {"id": "xti_session", "name": "Oil US Session", "symbol": "XTIUSD", "type": "day", "instrument_category": "energies"},
+                {"id": "eurusd_london", "name": "EURUSD London", "symbol": "EURUSD", "type": "day", "instrument_category": "forex"},
+                {"id": "eurusd_ny", "name": "EURUSD NY", "symbol": "EURUSD", "type": "day", "instrument_category": "forex"},
+                {"id": "usdjpy_tokyo", "name": "USDJPY Tokyo", "symbol": "USDJPY", "type": "day", "instrument_category": "forex"},
+                {"id": "gbpjpy_london", "name": "GBPJPY London", "symbol": "GBPJPY", "type": "day", "instrument_category": "forex"},
+                {"id": "gbpusd_range", "name": "GBPUSD Range", "symbol": "GBPUSD", "type": "scalp", "instrument_category": "forex"},
+                {"id": "usdchf_trend", "name": "USDCHF Trend", "symbol": "USDCHF", "type": "swing", "instrument_category": "forex"},
+            ],
+            "count": 19,
+            "by_category": {
+                "indices": 3, "crypto": 4, "metals": 3, "energies": 1, "forex": 8
+            }
+        }
+
+
+def _group_by_category(strategies: dict) -> dict:
+    """Count strategies per category."""
+    from strategies.library import _get_category
+    counts: Dict[str, int] = {}
+    for v in strategies.values():
+        cat = _get_category(v['symbol'])
+        counts[cat] = counts.get(cat, 0) + 1
+    return counts
+
+
+# ── Strategy Config (enabled/disabled) ──
+
+_strategies_config: Dict[str, Any] = {}
+_strategies_config_loaded = False
+
+
+def _load_strategies_config():
+    """Load strategy config from file."""
+    global _strategies_config, _strategies_config_loaded
+    if _strategies_config_loaded:
+        return
+    config_path = Path("data/strategies_config.json")
+    if config_path.exists():
+        with open(config_path) as f:
+            _strategies_config = json.load(f)
+    _strategies_config_loaded = True
+
+
+def _save_strategies_config():
+    """Save strategy config to file."""
+    config_path = Path("data/strategies_config.json")
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(config_path, "w") as f:
+        json.dump(_strategies_config, f, indent=2)
+
+
+@router.get("/api/strategies/config")
+async def get_strategies_config():
+    """Get strategy enable/disable configuration."""
+    _load_strategies_config()
+    return _strategies_config or {
+        "xau_asian": {"enabled": True, "risk_pct": 0.5, "max_daily_trades": 1},
+        "xau_ny": {"enabled": True, "risk_pct": 0.5, "max_daily_trades": 1},
+        "forex_london": {"enabled": True, "risk_pct": 0.5, "max_daily_trades": 2},
+    }
+
+
+@router.post("/api/strategies/config")
+async def update_strategies_config(payload: Dict[str, Any] = Body(...)):
+    """Update strategy configuration (enable/disable, risk params).
+
+    Payload: { "strategy_id": { "enabled": true, "risk_pct": 0.5 } }
+    """
+    _load_strategies_config()
+    for sid, cfg in payload.items():
+        if sid not in _strategies_config:
+            _strategies_config[sid] = {}
+        _strategies_config[sid].update(cfg)
+    _save_strategies_config()
+    return {"success": True, "config": _strategies_config}
+
+
+# ═══════════════════════════════════════════
+# STRATEGY-SPECIFIC BACKTEST/OPTIMIZE/MC
+# ═══════════════════════════════════════════
+
+@router.post("/api/strategies/{strategy_id}/backtest")
+async def backtest_strategy(
+    strategy_id: str,
+    payload: Dict[str, Any] = Body(default={}),
+    mgr: JobManager = Depends(get_job_manager)
+):
+    """Queue a backtest for a specific strategy."""
+    from strategies.library import STRATEGIES
+    if strategy_id not in STRATEGIES:
+        raise HTTPException(404, f"Strategy '{strategy_id}' not found")
+
+    job_id = mgr.submit(JobType.BACKTEST, {
+        "strategy_id": strategy_id,
+        "symbol": STRATEGIES[strategy_id]["symbol"],
+        "strategy_name": STRATEGIES[strategy_id]["name"],
+        "days": payload.get("days", 90),
+        "timeframe": payload.get("timeframe", "5m"),
+        "balance": payload.get("balance", 10000),
+        "risk_pct": payload.get("risk_pct", 0.5),
+    })
+    return {"job_id": job_id, "status": "queued", "strategy": strategy_id}
+
+
+@router.post("/api/strategies/{strategy_id}/optimize")
+async def optimize_strategy(
+    strategy_id: str,
+    payload: Dict[str, Any] = Body(default={}),
+    mgr: JobManager = Depends(get_job_manager)
+):
+    """Queue walk-forward optimization for a specific strategy."""
+    from strategies.library import STRATEGIES
+    if strategy_id not in STRATEGIES:
+        raise HTTPException(404, f"Strategy '{strategy_id}' not found")
+
+    job_id = mgr.submit(JobType.WALK_FORWARD, {
+        "strategy_id": strategy_id,
+        "symbol": STRATEGIES[strategy_id]["symbol"],
+        "strategy_name": STRATEGIES[strategy_id]["name"],
+        "days": payload.get("days", 180),
+        "is_pct": payload.get("is_pct", 0.7),
+        "oos_pct": payload.get("oos_pct", 0.3),
+    })
+    return {"job_id": job_id, "status": "queued", "strategy": strategy_id}
+
+
+@router.post("/api/strategies/{strategy_id}/mc")
+async def monte_carlo_strategy(
+    strategy_id: str,
+    payload: Dict[str, Any] = Body(default={}),
+    mgr: JobManager = Depends(get_job_manager)
+):
+    """Queue Monte Carlo simulation for a specific strategy."""
+    from strategies.library import STRATEGIES
+    if strategy_id not in STRATEGIES:
+        raise HTTPException(404, f"Strategy '{strategy_id}' not found")
+
+    job_id = mgr.submit(JobType.MONTE_CARLO, {
+        "strategy_id": strategy_id,
+        "symbol": STRATEGIES[strategy_id]["symbol"],
+        "strategy_name": STRATEGIES[strategy_id]["name"],
+        "simulations": payload.get("simulations", 10000),
+        "balance": payload.get("balance", 10000),
+    })
+    return {"job_id": job_id, "status": "queued", "strategy": strategy_id}
+
+
+@router.post("/api/portfolio/mc")
+async def monte_carlo_portfolio(
+    payload: Dict[str, Any] = Body(default={}),
+    mgr: JobManager = Depends(get_job_manager)
+):
+    """Queue Monte Carlo simulation for the entire enabled portfolio."""
+    _load_strategies_config()
+    enabled = [sid for sid, cfg in _strategies_config.items() if cfg.get("enabled", False)]
+
+    job_id = mgr.submit(JobType.MONTE_CARLO, {
+        "portfolio": True,
+        "enabled_strategies": enabled,
+        "simulations": payload.get("simulations", 10000),
+        "balance": payload.get("balance", 10000),
+    })
+    return {"job_id": job_id, "status": "queued", "strategies": enabled}
 
 
 # ═══════════════════════════════════════════
