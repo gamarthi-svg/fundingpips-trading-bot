@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -20,7 +21,10 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Shield, Key, Server, CheckCircle2, AlertTriangle, Trash2, Eye, EyeOff, Lock } from 'lucide-react';
+import {
+  Shield, Key, Server, CheckCircle2, AlertTriangle, Trash2, Eye, EyeOff, Lock,
+  Trophy, Target, TrendingDown, Clock, Percent, Banknote, Star,
+} from 'lucide-react';
 
 const API_BASE = '';
 
@@ -44,8 +48,136 @@ interface PropFirmInfo {
   account_sizes: number[];
   default_size: number;
   phases: string[];
+  time_limit: string;
+  profit_split: number;
+  refund: boolean;
+  features: string[];
   bootcamp?: boolean;
 }
+
+const DEFAULT_PROP_FIRMS: PropFirmInfo[] = [
+  {
+    id: 'fundingpips',
+    name: 'FundingPips',
+    steps: 2,
+    account_sizes: [10000, 50000, 100000, 200000],
+    default_size: 10000,
+    phases: ['phase1', 'phase2', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.80,
+    refund: true,
+    features: ['No time limit', 'News trading allowed', 'EA allowed'],
+  },
+  {
+    id: 'the5ers',
+    name: 'The5%ers',
+    steps: 3,
+    account_sizes: [5000, 10000, 20000, 40000, 60000, 100000],
+    default_size: 5000,
+    phases: ['phase1', 'phase2', 'phase3', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.50,
+    refund: false,
+    bootcamp: true,
+    features: ['3-step challenge', 'Scaling plan', 'Instant bootcamp'],
+  },
+  {
+    id: 'ftmo',
+    name: 'FTMO',
+    steps: 2,
+    account_sizes: [10000, 25000, 50000, 100000, 200000],
+    default_size: 10000,
+    phases: ['phase1', 'phase2', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.80,
+    refund: true,
+    features: ['No time limit', 'Swing account', 'Scaling plan'],
+  },
+  {
+    id: 'trueforexfunds',
+    name: 'True Forex Funds',
+    steps: 2,
+    account_sizes: [10000, 25000, 50000, 100000, 200000],
+    default_size: 10000,
+    phases: ['phase1', 'phase2', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.80,
+    refund: true,
+    features: ['Bi-weekly payouts', 'No time limit', 'EA allowed'],
+  },
+  {
+    id: 'blueguardian',
+    name: 'Blue Guardian',
+    steps: 2,
+    account_sizes: [10000, 25000, 50000, 100000, 200000],
+    default_size: 10000,
+    phases: ['phase1', 'phase2', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.85,
+    refund: true,
+    features: ['85% split', 'No time limit', 'News allowed'],
+  },
+  {
+    id: 'surgetrader',
+    name: 'SurgeTrader',
+    steps: 1,
+    account_sizes: [25000, 50000, 100000, 250000, 500000, 1000000],
+    default_size: 25000,
+    phases: ['phase1', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.75,
+    refund: false,
+    features: ['1-step evaluation', 'Up to $1M', 'No daily loss'],
+  },
+  {
+    id: 'apex',
+    name: 'Apex Trader Funding',
+    steps: 1,
+    account_sizes: [25000, 50000, 100000, 150000, 250000, 300000],
+    default_size: 50000,
+    phases: ['phase1', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 1.00,
+    refund: false,
+    features: ['100% 1st $25K', 'No daily DD', 'Futures only'],
+  },
+  {
+    id: 'topstep',
+    name: 'Topstep',
+    steps: 1,
+    account_sizes: [50000, 100000, 150000],
+    default_size: 50000,
+    phases: ['phase1', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.90,
+    refund: true,
+    features: ['Futures', '90% split', 'Express fund'],
+  },
+  {
+    id: 'bulenox',
+    name: 'Bulenox',
+    steps: 1,
+    account_sizes: [10000, 25000, 50000, 100000, 150000, 250000],
+    default_size: 25000,
+    phases: ['phase1', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.90,
+    refund: false,
+    features: ['Futures', '90% split', 'No daily DD'],
+  },
+  {
+    id: 'fundednext',
+    name: 'FundedNext',
+    steps: 2,
+    account_sizes: [6000, 15000, 25000, 50000, 100000, 200000],
+    default_size: 15000,
+    phases: ['phase1', 'phase2', 'funded'],
+    time_limit: 'Unlimited',
+    profit_split: 0.95,
+    refund: true,
+    features: ['95% split', 'No time limit', 'News allowed'],
+  },
+];
 
 const REGIONS = [
   { value: 'new-york', label: 'New York (US)' },
@@ -56,9 +188,104 @@ const REGIONS = [
 const PHASES_2STEP = ['phase1', 'phase2', 'funded'];
 const PHASES_3STEP = ['phase1', 'phase2', 'phase3', 'funded'];
 
+// Phase rules for each prop firm
+const PHASE_RULES: Record<string, Record<string, { profitTarget: string; maxDrawdown: string; dailyDrawdown: string; description: string }>> = {
+  fundingpips: {
+    phase1: { profitTarget: '8%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 1: Reach 8% profit target without hitting drawdown limits' },
+    phase2: { profitTarget: '5%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 2: Reach 5% profit target to get funded' },
+    funded: { profitTarget: 'No target', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Funded: Trade with real capital, keep 80% of profits' },
+  },
+  ftmo: {
+    phase1: { profitTarget: '10%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 1: Reach 10% profit target' },
+    phase2: { profitTarget: '5%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 2: Reach 5% profit target to get funded' },
+    funded: { profitTarget: 'No target', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Funded: Trade with real capital, keep 80% of profits' },
+  },
+  the5ers: {
+    phase1: { profitTarget: '6%', maxDrawdown: '6%', dailyDrawdown: 'N/A', description: 'Bootcamp Step 1: Reach 6% profit target' },
+    phase2: { profitTarget: '5%', maxDrawdown: '6%', dailyDrawdown: 'N/A', description: 'Bootcamp Step 2: Reach 5% profit target' },
+    phase3: { profitTarget: '5%', maxDrawdown: '6%', dailyDrawdown: 'N/A', description: 'Bootcamp Step 3: Reach 5% profit target' },
+    funded: { profitTarget: 'No target', maxDrawdown: '6%', dailyDrawdown: 'N/A', description: 'Funded: Start with 50% profit split, scale up to 80%' },
+  },
+  trueforexfunds: {
+    phase1: { profitTarget: '8%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 1: Reach 8% profit target' },
+    phase2: { profitTarget: '5%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 2: Reach 5% profit target to get funded' },
+    funded: { profitTarget: 'No target', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Funded: Bi-weekly payouts, keep 80% of profits' },
+  },
+  blueguardian: {
+    phase1: { profitTarget: '8%', maxDrawdown: '10%', dailyDrawdown: '4%', description: 'Phase 1: Reach 8% profit target' },
+    phase2: { profitTarget: '4%', maxDrawdown: '10%', dailyDrawdown: '4%', description: 'Phase 2: Reach 4% profit target to get funded' },
+    funded: { profitTarget: 'No target', maxDrawdown: '10%', dailyDrawdown: '4%', description: 'Funded: Keep 85% of profits' },
+  },
+  surgetrader: {
+    phase1: { profitTarget: '10%', maxDrawdown: '8%', dailyDrawdown: 'None', description: '1-Step: Reach 10% profit target, no daily drawdown' },
+    funded: { profitTarget: 'No target', maxDrawdown: '8%', dailyDrawdown: 'None', description: 'Funded: Keep 75% of profits' },
+  },
+  apex: {
+    phase1: { profitTarget: 'No target', maxDrawdown: 'Trailing', dailyDrawdown: 'None', description: 'Evaluation: Trade profitably without hitting trailing drawdown' },
+    funded: { profitTarget: 'No target', maxDrawdown: 'Trailing', dailyDrawdown: 'None', description: 'Funded: Keep 100% of first $25K, then 90%' },
+  },
+  topstep: {
+    phase1: { profitTarget: '$3K', maxDrawdown: '$2K', dailyDrawdown: 'None', description: 'Trading Combine: Reach profit target without max loss' },
+    funded: { profitTarget: 'No target', maxDrawdown: 'Varies', dailyDrawdown: 'None', description: 'Funded: Keep first $5K, then 90%' },
+  },
+  bulenox: {
+    phase1: { profitTarget: 'No target', maxDrawdown: 'Trailing', dailyDrawdown: 'None', description: 'Evaluation: Trade without hitting trailing drawdown' },
+    funded: { profitTarget: 'No target', maxDrawdown: 'Trailing', dailyDrawdown: 'None', description: 'Funded: Keep 90% of profits' },
+  },
+  fundednext: {
+    phase1: { profitTarget: '10%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 1: Reach 10% profit target' },
+    phase2: { profitTarget: '5%', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Phase 2: Reach 5% profit target to get funded' },
+    funded: { profitTarget: 'No target', maxDrawdown: '10%', dailyDrawdown: '5%', description: 'Funded: Keep up to 95% of profits' },
+  },
+};
+
+function formatPhaseLabel(p: string): string {
+  if (p === 'funded') return 'Funded';
+  return p.replace('phase', 'Phase ');
+}
+
+function PhaseDetailCard({
+  phaseKey,
+  rules,
+}: {
+  phaseKey: string;
+  rules: { profitTarget: string; maxDrawdown: string; dailyDrawdown: string; description: string };
+}) {
+  const isFunded = phaseKey === 'funded';
+  return (
+    <div className={`rounded-lg border p-3 space-y-2 ${isFunded ? 'border-emerald-700/50 bg-emerald-950/20' : 'border-zinc-800 bg-zinc-900/50'}`}>
+      <div className="flex items-center gap-2">
+        {isFunded ? (
+          <Trophy className="h-3.5 w-3.5 text-emerald-400" />
+        ) : (
+          <Target className="h-3.5 w-3.5 text-sky-400" />
+        )}
+        <span className={`text-xs font-semibold ${isFunded ? 'text-emerald-400' : 'text-sky-400'}`}>
+          {formatPhaseLabel(phaseKey)}
+        </span>
+      </div>
+      <p className="text-[11px] text-zinc-400 leading-snug">{rules.description}</p>
+      <div className="grid grid-cols-3 gap-1.5 pt-1">
+        <div className="text-center rounded bg-zinc-950 p-1.5">
+          <div className="text-[10px] text-zinc-500">Profit</div>
+          <div className="text-[11px] text-emerald-400 font-mono">{rules.profitTarget}</div>
+        </div>
+        <div className="text-center rounded bg-zinc-950 p-1.5">
+          <div className="text-[10px] text-zinc-500">Max DD</div>
+          <div className="text-[11px] text-red-400 font-mono">{rules.maxDrawdown}</div>
+        </div>
+        <div className="text-center rounded bg-zinc-950 p-1.5">
+          <div className="text-[10px] text-zinc-500">Daily DD</div>
+          <div className="text-[11px] text-amber-400 font-mono">{rules.dailyDrawdown}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CredentialManager() {
   const [status, setStatus] = useState<CredentialStatus | null>(null);
-  const [propFirms, setPropFirms] = useState<PropFirmInfo[]>([]);
+  const [propFirms, setPropFirms] = useState<PropFirmInfo[]>(DEFAULT_PROP_FIRMS);
   const [loading, setLoading] = useState(false);
 
   // Form state
@@ -87,30 +314,41 @@ export default function CredentialManager() {
       // Backend may not be running — silent fail
     }
 
+    // API fetch as enhancement — merge with defaults
     try {
       const r = await fetch(`${API_BASE}/api/prop-firms`);
       if (r.ok) {
         const data = await r.json();
-        setPropFirms(data.firms || []);
+        const fetched = (data.firms || []) as PropFirmInfo[];
+        if (fetched.length > 0) {
+          // Merge fetched firms with defaults (fetched takes precedence)
+          const merged = [...DEFAULT_PROP_FIRMS];
+          fetched.forEach((f: PropFirmInfo) => {
+            const idx = merged.findIndex(m => m.id === f.id);
+            if (idx >= 0) {
+              merged[idx] = { ...merged[idx], ...f };
+            } else {
+              merged.push(f);
+            }
+          });
+          setPropFirms(merged);
+        }
       }
     } catch (e) {
-      // Use defaults
-      setPropFirms([
-        { id: 'fundingpips', name: 'FundingPips', steps: 2, account_sizes: [10000, 50000, 100000, 200000], default_size: 10000, phases: ['phase1', 'phase2', 'funded'] },
-        { id: 'the5ers', name: 'The5%ers', steps: 3, account_sizes: [5000], default_size: 5000, phases: ['phase1', 'phase2', 'phase3', 'funded'], bootcamp: true },
-      ]);
+      // Already have defaults — no action needed
     }
   }, []);
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 30000); // Refresh every 30s
+    const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
   const currentFirm = propFirms.find(f => f.id === propFirm);
   const accountSizes = currentFirm?.account_sizes || [10000, 50000, 100000, 200000];
   const phases = (currentFirm?.steps || 2) === 3 ? PHASES_3STEP : PHASES_2STEP;
+  const phaseRules = PHASE_RULES[propFirm];
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -143,13 +381,14 @@ export default function CredentialManager() {
       const result = await r.json();
       if (r.ok && result.success) {
         toast.success(result.message || 'Credentials saved securely');
-        setToken(''); // Clear token from form
+        setToken('');
         fetchStatus();
       } else {
         toast.error(result.message || result.detail || 'Failed to save credentials');
       }
-    } catch (err: any) {
-      toast.error('Network error: ' + (err.message || 'Unknown'));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown';
+      toast.error('Network error: ' + msg);
     } finally {
       setLoading(false);
     }
@@ -330,6 +569,64 @@ export default function CredentialManager() {
                     <SelectItem value="3" className="text-zinc-200">Step 3 — Funded</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            <Separator className="bg-zinc-800" />
+
+            {/* Firm Info Summary */}
+            {currentFirm && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="border-zinc-700 text-zinc-300 text-[10px]">
+                    <Percent className="h-2.5 w-2.5 mr-1" />
+                    {Math.round(currentFirm.profit_split * 100)}% Split
+                  </Badge>
+                  <Badge variant="outline" className="border-zinc-700 text-zinc-300 text-[10px]">
+                    <Clock className="h-2.5 w-2.5 mr-1" />
+                    {currentFirm.time_limit}
+                  </Badge>
+                  {currentFirm.refund && (
+                    <Badge variant="outline" className="border-emerald-700 text-emerald-400 text-[10px]">
+                      <Banknote className="h-2.5 w-2.5 mr-1" />
+                      Refundable
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className="border-zinc-700 text-zinc-300 text-[10px]">
+                    {currentFirm.steps}-step
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {currentFirm.features.map(f => (
+                    <Badge key={f} variant="secondary" className="bg-zinc-900 text-zinc-400 text-[10px]">
+                      <Star className="h-2.5 w-2.5 mr-1" />
+                      {f}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Phase Detail Cards */}
+                {phaseRules && (
+                  <div className="pt-2">
+                    <Label className="text-zinc-400 text-xs mb-2 block flex items-center gap-1">
+                      <TrendingDown className="h-3 w-3" />
+                      Phase Rules for {currentFirm.name}
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {phases.map(p => {
+                        const rules = phaseRules[p];
+                        if (!rules) return null;
+                        return (
+                          <PhaseDetailCard
+                            key={p}
+                            phaseKey={p}
+                            rules={rules}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

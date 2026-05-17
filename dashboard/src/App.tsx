@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import CredentialManager from './components/CredentialManager';
+import StrategyControl from './components/StrategyControl';
 import './App.css';
 
 // ═══════════════════════════════════════════════════════════
@@ -335,6 +336,7 @@ export default function App() {
             <TabsTrigger value="positions" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><Radio className="h-3 w-3 mr-1" />Positions ({displayPositions.length})</TabsTrigger>
             <TabsTrigger value="history" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><History className="h-3 w-3 mr-1" />History ({displayTrades.length})</TabsTrigger>
             <TabsTrigger value="strategies" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><Zap className="h-3 w-3 mr-1" />Strategies</TabsTrigger>
+            <TabsTrigger value="strategy-control" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><Target className="h-3 w-3 mr-1" />Strategy Control</TabsTrigger>
             <TabsTrigger value="backtest" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><FlaskConical className="h-3 w-3 mr-1" />Backtest</TabsTrigger>
             <TabsTrigger value="control" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><Cog className="h-3 w-3 mr-1" />Control</TabsTrigger>
             <TabsTrigger value="settings" className="text-xs data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-300"><ShieldCheck className="h-3 w-3 mr-1" />Settings</TabsTrigger>
@@ -461,6 +463,11 @@ export default function App() {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          {/* ── STRATEGY CONTROL TAB ── */}
+          <TabsContent value="strategy-control" className="mt-4">
+            <StrategyControl />
           </TabsContent>
 
           {/* ── BACKTEST TAB ── */}
