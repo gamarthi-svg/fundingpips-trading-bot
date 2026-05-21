@@ -4212,6 +4212,78 @@ def print_strategy_summary():
 
 
 # ═══════════════════════════════════════════════════════════════
+# === PLAYBIT PROPRIETARY STRATEGY IMPORTS & REGISTRATION ===
+# ═══════════════════════════════════════════════════════════════
+# Imported at module end to avoid circular dependency with
+# playbit_strategies.py which imports from this module.
+
+from strategies.playbit_strategies import (  # noqa: E402
+    detect_liquidity_pools,
+    detect_sweep,
+    detect_fvg,
+    calculate_dynamic_range,
+    strategy_dorb,
+    strategy_dorb_us,
+    strategy_dorb_london,
+    strategy_ilm,
+    strategy_ilm_gold,
+    strategy_ilm_eurusd,
+    strategy_ilm_nas,
+)
+
+# ── Register PlayBit strategies in the global registry ──
+STRATEGIES.update({
+    # ── PLAYBIT PROPRIETARY: D-ORB ──
+    "dorb_us": {
+        "name": "D-ORB US Session",
+        "symbol": "NAS100",
+        "type": "day",
+        "category": "indices",
+        "func": strategy_dorb_us,
+        "sessions": ["us"],
+        "description": "Dynamic Opening Range Breakout US session (NAS100, US30), volatility-adaptive",
+    },
+    "dorb_london": {
+        "name": "D-ORB London",
+        "symbol": "EURUSD",
+        "type": "day",
+        "category": "forex",
+        "func": strategy_dorb_london,
+        "sessions": ["london"],
+        "description": "Dynamic Opening Range Breakout London session (EURUSD, GBPUSD), volatility-adaptive",
+    },
+
+    # ── PLAYBIT PROPRIETARY: ILM ──
+    "ilm_gold": {
+        "name": "ILM Gold",
+        "symbol": "XAUUSD",
+        "type": "day",
+        "category": "metals",
+        "func": strategy_ilm_gold,
+        "sessions": ["london"],
+        "description": "Intelligent Liquidity Model for XAUUSD, institutional sweep/reclaim",
+    },
+    "ilm_eurusd": {
+        "name": "ILM EURUSD",
+        "symbol": "EURUSD",
+        "type": "day",
+        "category": "forex",
+        "func": strategy_ilm_eurusd,
+        "sessions": ["london"],
+        "description": "Intelligent Liquidity Model for EURUSD, institutional sweep/reclaim",
+    },
+    "ilm_nas": {
+        "name": "ILM NAS100",
+        "symbol": "NAS100",
+        "type": "day",
+        "category": "indices",
+        "func": strategy_ilm_nas,
+        "sessions": ["us"],
+        "description": "Intelligent Liquidity Model for NAS100, institutional sweep/reclaim",
+    },
+})
+
+# ═══════════════════════════════════════════════════════════════
 # === MAIN / SELF-TEST ===
 # ═══════════════════════════════════════════════════════════════
 
